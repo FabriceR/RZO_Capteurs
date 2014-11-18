@@ -138,6 +138,7 @@ void DataReceived (unsigned char d, ID_UART uart)
 		{
 		
 			case 	STATE_IDLE:
+			{
 				if (d == SYNC_CHAR_1)
 					XBeeRxState = STATE_SYNC;
 				else if (d == CONF_CHAR_1)
@@ -148,24 +149,27 @@ void DataReceived (unsigned char d, ID_UART uart)
 					printf("%c",d);
 					//SendData(d+1, XBEE);
 				}
-			break;
+			} break;
 			
 			case STATE_SYNC:
+			{
 				if (d == SYNC_CHAR_2)
 					XBeeRxState = STATE_SAVING;
 				else
 					XBeeRxState = STATE_IDLE;
-			break;
+			} break;
 			
 			case STATE_CONF:
+			{
 				if (d == CONF_CHAR_2)
 					setOKReceived();
 				XBeeRxState = STATE_IDLE;
-			break;
+			} break;
 			
 			case STATE_SAVING:
+			{
 				XBeeRxState = STATE_IDLE;
-			break;
+			} break;
 			
 		}
 	

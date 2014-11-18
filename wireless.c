@@ -33,19 +33,26 @@ int configureFM( int direction )
 	TurnOffFM();
 	
 	// Opening a clean configuration
-	if (direction == TURN_ON_RX)
+	switch (direction)
 	{
-		TurnOnRXFM();
-		ActiverITRXFM();
-	}
-	else if (direction == TURN_ON_TX)
-	{
-		TurnOnTXFM();
-	}
-	else
-	{
-		out = ERROR;
-	}
+		
+		case TURN_ON_RX:
+		{
+			TurnOnRXFM();
+			ActiverITRXFM();
+		} break;
+	
+		case TURN_ON_TX:
+		{
+			TurnOnTXFM();
+		} break;
+		
+		default:
+		{
+			out = ERROR;
+		}
+		
+	} // Fin switch : direction ?
 	
 	return out;
 }
@@ -64,22 +71,30 @@ int configureXBee( int direction )
 	DesactiverITRXXBEE();
 	
 	// Opening a clean configuration
-	if (direction == TURN_ON_RX)
+	switch (direction)
 	{
-		ActiverITRXXBEE();
-	}
-	else if (direction == TURN_ON_TX)
-	{
-		// NOP
-	}
-	else if (direction == TURN_ON_RX_AND_TX)
-	{
-		ActiverITRXXBEE();
-	}
-	else
-	{
-		out = ERROR;
-	}
+	
+		case TURN_ON_RX:
+		{
+			ActiverITRXXBEE();
+		} break;
+		
+		case TURN_ON_TX:
+		{
+			// NOP
+		} break;
+		
+		case TURN_ON_RX_AND_TX:
+		{
+			ActiverITRXXBEE();
+		} break;
+		
+		default:
+		{
+			out = ERROR;
+		}
+
+	} // Fin switch : direction
 	
 	// Configure XBee module
 	if (out == SUCCESS)
@@ -129,11 +144,14 @@ void SendString(unsigned char * str, int length, ID_UART uart)
  */
 void clearScreen( void )
 {
-	set_cursor(0,0);
-	printf("                ");
-	set_cursor(0,1);
-	printf("                ");
-	set_cursor(0,0);
+	if (TypeCarte == STANDARD)
+	{
+		set_cursor(0,0);
+		printf("                ");
+		set_cursor(0,1);
+		printf("                ");
+		set_cursor(0,0);
+	}
 }
 	
 
@@ -188,40 +206,47 @@ int sendCommand( int command )
 			OKReceived = 0;
 			out = SUCCESS;
 
-			switch (command)
+			if (TypeCarte == STANDARD)
 			{
-				
-				case PPP:
-					printf("     +++ OK     ");
-				break;
-				
-				case ATID:
-					printf("    ATID OK     ");
-				break;
-				
-				case ATWR:
-					printf("    ATWR OK     ");
-				break;
-				
-				case ATCN:
-					printf("    ATCN OK     ");
-				break;
-				
+				switch (command)
+				{
+					
+					case PPP:
+						printf("     +++ OK     ");
+					break;
+					
+					case ATID:
+						printf("    ATID OK     ");
+					break;
+					
+					case ATWR:
+						printf("    ATWR OK     ");
+					break;
+					
+					case ATCN:
+						printf("    ATCN OK     ");
+					break;
+					
+				}
 			}
+			
 		}
 		else
 		{
-			out = ERROR;
-			printf(" NO XBEE ANSWER ");
-			set_cursor(0,1);
-			printf("... Waiting ... ");
+			if (TypeCarte == STANDARD)
+			{
+				printf(" NO XBEE ANSWER ");
+				set_cursor(0,1);
+				printf("... Waiting ... ");
+			}
 			TIMEWaitxms(500);
+			out = ERROR;
 			runs--;	// While loop run max 2 times.
 		}
 		
 	}
 	
-	if (out == ERROR)
+	if ((out == ERROR) && (TypeCarte == STANDARD))
 	{
 		clearScreen();
 		printf(" !! FAILURE !!  ");
