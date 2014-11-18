@@ -52,8 +52,8 @@ int XBeeRxState = STATE_IDLE;
 int main (void)
 {
 // variables pour la demo timer+LED
-int cnt100Hz = 0, cnt1Hz = 0;	// compteurs
-int blink = 15;			// rapport cyclique LED (sur 100)
+// int cnt100Hz = 0, cnt1Hz = 0;	// compteurs
+// int blink = 15;			// rapport cyclique LED (sur 100)
 
 	/* Initialisation de la couche materielle */
 	MACInit(); 
@@ -64,7 +64,7 @@ int blink = 15;			// rapport cyclique LED (sur 100)
 	
 	if (TypeCarte == STANDARD)
 	{
-		clearScreen();
+		//clearScreen();
 	}
 
 	/* printf vers le debugger Keil (seulement avec cible reelle, pas en simu) (sonde sur port SW, pas JTAG) :
@@ -79,8 +79,8 @@ int blink = 15;			// rapport cyclique LED (sur 100)
 	while (1)
 	{
 		
-		SendData('x', XBEE);
-		TIMEWaitxms(100);
+		SendString((unsigned char *)"RESERVED PAN ID !\r", 18, XBEE);
+		TIMEWaitxms(1000);
 	
 		/* Fabrice ne regarde pas la suite c'est caca */
 		/*if	( TIME10msExpired() )	// N.B. cette fonction a un effet de bord : elle re-arme son propre timer 

@@ -14,7 +14,7 @@
 #include <string.h>	  /* gestion des chaines */
 #include "mac.h"
 
-#define 	XBEE_PANID		29
+#define 	XBEE_PANID		3615
 #define		SYNC_CHAR_1		'F'
 #define		SYNC_CHAR_2 	'M'
 #define		CONF_CHAR_1 	'O'

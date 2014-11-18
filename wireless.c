@@ -57,7 +57,7 @@ int configureFM( int direction )
  */
 int configureXBee( int direction )
 {
-	int out = SUCCESS;		char debug[20];
+	int out = SUCCESS;
 
 	
 	// Closing properly last configuration
@@ -91,11 +91,8 @@ int configureXBee( int direction )
 		TIMEWaitxms(500);
 		if (out == SUCCESS)
 			out = sendCommand(ATID);
-		set_cursor(0,1);
-		sprintf(debug, "Out = %d/%d", out, SUCCESS);
-		TIMEWaitxms(500);
-		//if (out == SUCCESS)
-		//	out = sendCommand(ATWR);
+		if (out == SUCCESS)
+			out = sendCommand(ATWR);
 		if (out == SUCCESS)
 			out = sendCommand(ATCN);
 	}
@@ -162,22 +159,20 @@ int sendCommand( int command )
 			break;
 			
 			case ATID:
-				sprintf((char *)cmd, "ATID%d,", XBEE_PANID);
-					//clearScreen();
-					//printf("ATID%d\n", XBEE_PANID);
-				SendString(cmd, 6, XBEE);
+				sprintf((char *)cmd, "ATID%d\r", XBEE_PANID);
+				SendString(cmd, 9, XBEE);
 				TIMEWaitxms(200);
 			break;
 			
 			case ATWR:
-				sprintf((char *)cmd, "WR,");
-				SendString(cmd, 3, XBEE);
+				sprintf((char *)cmd, "ATWR\r");
+				SendString(cmd, 5, XBEE);
 				TIMEWaitxms(200);
 			break;
 			
 			case ATCN:
-				sprintf((char *)cmd, "CN,");
-				SendString(cmd, 3, XBEE);
+				sprintf((char *)cmd, "ATCN\r");
+				SendString(cmd, 5, XBEE);
 				TIMEWaitxms(200);
 			break;
 			
@@ -216,6 +211,7 @@ int sendCommand( int command )
 		}
 		else
 		{
+			out = ERROR;
 			printf(" NO XBEE ANSWER ");
 			set_cursor(0,1);
 			printf("... Waiting ... ");
