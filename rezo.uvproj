@@ -457,14 +457,24 @@
           <GroupName>services</GroupName>
           <Files>
             <File>
-              <FileName>wireless.c</FileName>
+              <FileName>wireless_configuration.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\wireless.c</FilePath>
+              <FilePath>.\wireless_configuration.c</FilePath>
             </File>
             <File>
-              <FileName>wireless.h</FileName>
+              <FileName>wireless_configuration.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\wireless.h</FilePath>
+              <FilePath>.\wireless_configuration.h</FilePath>
+            </File>
+            <File>
+              <FileName>communication_protocol.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\communication_protocol.c</FilePath>
+            </File>
+            <File>
+              <FileName>communication_protocol.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\communication_protocol.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -931,14 +941,24 @@
           <GroupName>services</GroupName>
           <Files>
             <File>
-              <FileName>wireless.c</FileName>
+              <FileName>wireless_configuration.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\wireless.c</FilePath>
+              <FilePath>.\wireless_configuration.c</FilePath>
             </File>
             <File>
-              <FileName>wireless.h</FileName>
+              <FileName>wireless_configuration.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\wireless.h</FilePath>
+              <FilePath>.\wireless_configuration.h</FilePath>
+            </File>
+            <File>
+              <FileName>communication_protocol.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\communication_protocol.c</FilePath>
+            </File>
+            <File>
+              <FileName>communication_protocol.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\communication_protocol.h</FilePath>
             </File>
           </Files>
         </Group>

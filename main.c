@@ -18,7 +18,8 @@
 
 #include "Retarget.h"
 
-#include "wireless.h"
+#include "wireless_configuration.h"
+#include "communication_protocol.h"
 
 /*********************** LISEZ CA AVANT DE PASSER A LA SUITE *************************
  *
@@ -32,8 +33,10 @@
  *
  *************************************************************************************/
 
- // Xbee Rx FSM state
+// Xbee Rx FSM state
 int XBeeRxState = STATE_IDLE;
+int packetReceived = 0; // Flag to indicate if a packet is received (move to another file later)
+int remainingBytes = 10;
  
 /*
  * int main (void)
@@ -147,7 +150,6 @@ void DataReceived (unsigned char d, ID_UART uart)
 				{
 					set_cursor(0,1);
 					printf("%c",d);
-					//SendData(d+1, XBEE);
 				}
 			} break;
 			
@@ -168,7 +170,11 @@ void DataReceived (unsigned char d, ID_UART uart)
 			
 			case STATE_SAVING:
 			{
-				XBeeRxState = STATE_IDLE;
+				if (addReceivedByte(d, XBEE))
+				{
+					test( uart );
+					XBeeRxState = STATE_IDLE;
+				}
 			} break;
 			
 		}

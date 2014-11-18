@@ -7,7 +7,7 @@
  *
  */
  
-#include "wireless.h"
+#include "wireless_configuration.h"
 
 // Indicates if a OK has been received
 int OKReceived = 0;
@@ -52,7 +52,7 @@ int configureFM( int direction )
 			out = ERROR;
 		}
 		
-	} // Fin switch : direction ?
+	} // Fin switch : direction
 	
 	return out;
 }
@@ -131,7 +131,7 @@ int configureXBee( int direction )
  * Limitations:
  *     Attention, fonction bloquante le temps de l'envoi de la chaîne.
  */
-void SendString(unsigned char * str, int length, ID_UART uart)
+void SendString( unsigned char * str, int length, ID_UART uart )
 {
 	int id;
 	for (id = 0; id < length; id++)

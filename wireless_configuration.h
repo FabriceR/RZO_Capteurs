@@ -7,8 +7,8 @@
  *
  */
  
-#ifndef __WIRELESS__
-#define __WIRELESS__
+#ifndef __WIRELESS_CONFIGURATION__
+#define __WIRELESS_CONFIGURATION__
 
 #include <stdio.h>    /* sprintf et sscanf */
 #include <string.h>	  /* gestion des chaines */
@@ -81,7 +81,7 @@ int configureXBee( int direction );
  * Limitations:
  *     Attention, fonction bloquante le temps de l'envoi de la chaîne.
  */
-void SendString(unsigned char * str, int length, ID_UART uart);
+void SendString( unsigned char * str, int length, ID_UART uart );
 
 /** Nothing but a clear of the LCD screen
  */
@@ -92,4 +92,4 @@ void clearScreen( void );
 int sendCommand( int command );
 
 
-#endif /* __WIRELESS__ */
+#endif /* __WIRELESS_CONFIGURATION__ */
