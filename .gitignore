@@ -5,3 +5,16 @@
 .crf
 .d
 .__i
+*.crf
+*.o
+*.d
+*.__i
+*.axf
+*.bak
+*.dep
+*.Administrateur
+*.lst
+*.map
+*.lnp
+*.htm
+*.tra

@@ -1,0 +1,13 @@
+JLN 2014-11-05
+
+V6 --> V6b
+	- renomme miscellaneous.c en mac.c, coherent avec mac.h
+	- mac.c : ajoute 1 fonction pour lire l'etat du RT606
+	- mac.c : TIMEInit (void) initialise TIMEEnabled a 1 au lieu de 0,
+	  commentaire d'en-tete de la fonction corrige
+	- mac.c : ajoute module CRC32 "soft"
+V6b --> V7a
+	- recree le projet en esperant contourner "*** error 57: illegal address"
+	- configuration.c : ajoute GPIO output pour LEDs
+	- main.c : ajoute commentaire sur l'activation du debug printf,
+	  ajoute demo timer, avec action periodique sur LED, LCD et debug printf
