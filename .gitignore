@@ -1,0 +1,7 @@
+.dep
+.o
+.uigui*
+.bak
+.crf
+.d
+.__i
