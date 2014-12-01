@@ -63,7 +63,10 @@ int main (void)
 
 	/* Initialisation des media de communication */
 	// configureFM(TURN_ON_RX);
-	configureXBee(TURN_ON_RX_AND_TX);
+	//configureXBee(TURN_ON_RX_AND_TX);
+	configureXBee(TURN_ON_RX);
+	
+	
 	
 	if (TypeCarte == STANDARD)
 	{
@@ -82,8 +85,11 @@ int main (void)
 	while (1)
 	{
 		
-		SendString((unsigned char *)"RESERVED PAN ID !\r", 18, XBEE);
+		//SendString((unsigned char *)"RESERVED PAN ID !\r", 18, XBEE);
 		TIMEWaitxms(1000);
+	
+		//sendPacket(XBEE, 0x12, 0x34, 0x5678, 0x9ABC, 0xDE, 0x12345678);
+		//decodePacket(XBEE) ;
 	
 		/* Fabrice ne regarde pas la suite c'est caca */
 		/*if	( TIME10msExpired() )	// N.B. cette fonction a un effet de bord : elle re-arme son propre timer 
@@ -172,7 +178,7 @@ void DataReceived (unsigned char d, ID_UART uart)
 			{
 				if (addReceivedByte(d, XBEE))
 				{
-					test( uart );
+					decodePacket( uart );
 					XBeeRxState = STATE_IDLE;
 				}
 			} break;
