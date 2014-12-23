@@ -486,6 +486,11 @@
               <FileType>1</FileType>
               <FilePath>.\main.c</FilePath>
             </File>
+            <File>
+              <FileName>global.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\global.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
@@ -832,7 +837,7 @@
             <uSurpInc>0</uSurpInc>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>STM32F10X_MD</Define>
+              <Define>STM32F10X_MD _LCD_DEBUG_</Define>
               <Undefine></Undefine>
               <IncludePath>C:\Keil\stm32lib\stm32f10x\peripherals\inc;.\drivers</IncludePath>
             </VariousControls>
@@ -969,6 +974,11 @@
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\main.c</FilePath>
+            </File>
+            <File>
+              <FileName>global.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\global.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -255,3 +255,17 @@ int sendCommand( int command )
 	return out;
 }
 
+short int calculatesCRC(unsigned char * data , int sizeOfData) 
+{
+			short int oCRC ; 
+			unsigned int iCRC = 0xFFFFFFFF ;
+			int incr  ;
+
+			for (incr = 0 ; incr < sizeOfData ; incr++) 
+			{
+					UpdateCRC(&iCRC, data[incr]);
+					//fprintf (&__debug, "CRC = %x\n", iCRC) ; //à enlever, juste pour débuguer
+			}
+			oCRC = iCRC %0xFFFF ; // modulo pour mettre sur 16 bits
+			return(oCRC) ;	
+}

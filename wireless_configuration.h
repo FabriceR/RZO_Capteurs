@@ -12,14 +12,13 @@
 
 #include <stdio.h>    /* sprintf et sscanf */
 #include <string.h>	  /* gestion des chaines */
-#include "mac.h"
+#include "global.h"
 
-#define 	XBEE_PANID		3615
+#define 	XBEE_PANID		3332//3615
 #define		SYNC_CHAR_1		'F'
 #define		SYNC_CHAR_2 	'M'
 #define		CONF_CHAR_1 	'O'
 #define		CONF_CHAR_2 	'K'
-
 
 typedef enum
 {
@@ -91,5 +90,11 @@ void clearScreen( void );
  */
 int sendCommand( int command );
 
+/** Calculates a CRC on 2 bytes to be added in the frame sent in order to check the validity of the frame
+ * Uses : UpdateCRC of mac.c
+ * Returns : short int CRC
+ * In : int size of the data, unsigned char * pointer to the first byte of the data
+ */
+short int calculatesCRC(unsigned char * data , int sizeOfData);
 
 #endif /* __WIRELESS_CONFIGURATION__ */
