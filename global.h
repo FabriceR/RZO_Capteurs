@@ -17,7 +17,12 @@
 #define __GLOBAL__
 
 #define	NB_SENSOR_VALUES_AVG	750
-#define FM_SEND_REPETITIONS		15 // Number of same sends for one message
+#define FM_SEND_REPETITIONS		5 // Number of same sends for one message
+
+#define CYCLES_BETWEEN_NETWORK_MESSAGES	70	// Cycles of 10ms
+#define CYCLES_BEFORE_ALARM_NODE2	(CYCLES_BETWEEN_NETWORK_MESSAGES * 2 + 10)
+#define CYCLES_BEFORE_ALARM_NODE1	(CYCLES_BETWEEN_NETWORK_MESSAGES * 3 + 10)
+#define CYCLES_BEFORE_ALARM_BASE	(CYCLES_BETWEEN_NETWORK_MESSAGES * 4 + 10)
 
 typedef enum
 {
@@ -37,11 +42,19 @@ typedef enum
 // CHANGE HERE THE CORE TO FLASH //
 ///////////////////////////////////
 
-#define ROUTING_TABLE	{ 0x1001, 0x2001, 0x2002, 0x3001 }
-extern short int routingTable[NB_CORES];
-
+/** Save many values of the sensor and checks if all the data stored is the same
+ *  Easy way to be sure the button is not shaking anymore before sending any message
+ */
 int averageSensorValue(int newValue);
+
+/** Init of the GPIO using the LEDs
+ *  Init depends on the board used (Olimex or Keil)
+ */
 void InitMessageLED( void );
+
+/** Set the green LED on Olimex boards or the yellow LED on Keil board
+ *  Manage the active-high/active-low functionalities
+ */
 void SetMessageLED( int value );
 
 #endif /* __GLOBAL__ */

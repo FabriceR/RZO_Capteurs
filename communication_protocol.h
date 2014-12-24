@@ -14,7 +14,7 @@
 #define __COMMUNICATION_PROTOCOL__
 
 
-#define XBEE_PACKET_SIZE			13 // Bytes
+#define XBEE_PACKET_SIZE			9 // Bytes
 #define FM_PACKET_SIZE				9 // Bytes
 
 typedef enum
@@ -50,10 +50,8 @@ typedef struct
 	unsigned char syncChar1;	// 1 byte
 	unsigned char syncChar2;	// 1 byte
 	unsigned char type ; 			// 1 byte
-	unsigned char num_seq ; 	// 1 byte
-	unsigned short int source ; // 2 bytes
-	unsigned short int dest ; 	// 2 bytes
-	unsigned char count ; 		// 1 byte
+	unsigned char source ; 		// 1 bytes
+	unsigned char dest ; 			// 1 bytes
 	int data ; 								// 4 bytes
 } XBeeFrame;
 
@@ -72,6 +70,6 @@ int decodePacket(ID_UART uart);
 /** Send a frame from a source to a destination
  * Returns an integer : 0 if transmission done, 1 if an error occurs
  */
-void sendPacket(ID_UART uart, unsigned char type, unsigned char num_seq, unsigned short int source, unsigned short int dest, unsigned char count, long int data);
+void sendPacket(ID_UART uart, unsigned char type, unsigned char source, unsigned char dest, int data);
  
 #endif /* __COMMUNICATION_PROTOCOL__ */

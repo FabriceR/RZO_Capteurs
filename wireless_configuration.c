@@ -173,25 +173,25 @@ int sendCommand( int command )
 			case PPP:
 				sprintf((char *)cmd, "+++");
 				SendString(cmd, 3, XBEE);
-				TIMEWaitxms(800);
+				TIMEWaitxms(900);
 			break;
 			
 			case ATID:
 				sprintf((char *)cmd, "ATID%d\r", XBEE_PANID);
 				SendString(cmd, 9, XBEE);
-				TIMEWaitxms(200);
+				TIMEWaitxms(300);
 			break;
 			
 			case ATWR:
 				sprintf((char *)cmd, "ATWR\r");
 				SendString(cmd, 5, XBEE);
-				TIMEWaitxms(200);
+				TIMEWaitxms(300);
 			break;
 			
 			case ATCN:
 				sprintf((char *)cmd, "ATCN\r");
 				SendString(cmd, 5, XBEE);
-				TIMEWaitxms(200);
+				TIMEWaitxms(300);
 			break;
 			
 		}
@@ -255,9 +255,9 @@ int sendCommand( int command )
 	return out;
 }
 
-short int calculatesCRC(unsigned char * data , int sizeOfData) 
+unsigned short int calculatesCRC(unsigned char * data , int sizeOfData) 
 {
-			short int oCRC ; 
+			unsigned short int oCRC ; 
 			unsigned int iCRC = 0xFFFFFFFF ;
 			int incr  ;
 

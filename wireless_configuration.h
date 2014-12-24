@@ -14,7 +14,7 @@
 #include <string.h>	  /* gestion des chaines */
 #include "global.h"
 
-#define 	XBEE_PANID		3332//3615
+#define 	XBEE_PANID		3615
 #define		SYNC_CHAR_1		'F'
 #define		SYNC_CHAR_2 	'M'
 #define		CONF_CHAR_1 	'O'
@@ -95,6 +95,6 @@ int sendCommand( int command );
  * Returns : short int CRC
  * In : int size of the data, unsigned char * pointer to the first byte of the data
  */
-short int calculatesCRC(unsigned char * data , int sizeOfData);
+unsigned short int calculatesCRC(unsigned char * data , int sizeOfData);
 
 #endif /* __WIRELESS_CONFIGURATION__ */

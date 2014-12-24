@@ -36,35 +36,22 @@
  */
 /** PROTOCOLE
 	
-	Noeud :
-	si timeout : 		envoi message à base avec son id et un code d'erreur
-	si réception à destination de la base : transfert
-				
 	Capteur :
-	si événement : 	envoi vers la base
-	si timeout : 		envoi message de presence vers la base avec son id
+		Si événement : 	Envoi vers la base de l'événement
+		Si timeout : 		Envoi message de presence vers la base avec son id
+	
+	Noeud :
+		Si réception : 	Transfère le paquet au noeud suivant et réarme le timer d'attente
+		Si timeout : 		Envoi message d'erreur avec l'identifiant du noeud ne fonctionnant plus
 	
 	Base :
-		quand reçoit :
-			si message du capteur différent du précédent :
-				envoi par gsm
-			si message réseau:
-				si message provenant du capteur : rien
-				si message provenant d'un noeud : envoi par gsm du coeur ne fonctionnant plus
-	
-	RESTE DEV :
-	- Config GSM
-	- Envois GSM		
-	RESTE DEBUG :
-	- Réussir à utiliser le CRC
-	- SendPacket XBee : SIZE+2 sinon ça ne marche pas, pourquoi ?
-	- Être sur le bon PAN ID
-	- N'afficher une erreur de réseau que lorsqu'on est certain de sa source
+		Si réception :
+			Data :				Si message du capteur différent du précédent : Envoi par gsm
+			Réseau :			Réarme son timer d'attente
+			Erreur :			Envoi par gsm du coeur ne fonctionnant plus
+		Si timeout : 		Envoi par gsm du coeur ne fonctionnant plus
 */
 		
-// Routing table
-short int routingTable[NB_CORES] = ROUTING_TABLE;
-
 // XBee Rx FSM state
 int XBeeRxState = STATE_IDLE;
 
@@ -74,8 +61,6 @@ int FMRxState = STATE_IDLE;
 // Flag to indicate if a packet is received (move to another file later)
 int packetReceived = NO_PACKET; 
 
-// Value of the sensor : sending this value if it changes
-int sensorValue = 1;
 
 /*
  * int main (void)
@@ -94,91 +79,99 @@ int sensorValue = 1;
 int main (void)
 {
 
-	int cnt100Hz = 0;		// Counter incremented every 10ms
-	int	cntReload = 0;	// Counter incremented at each theoretical reception of a network message from the sensor
+	int cnt100Hz = 0;			// Counter incremented every 10ms
+	int	cntReload = 0;		// Counter incremented at each theoretical reception of a network message from the sensor
 
+	int sensorValue = 1; 	// Value of the sensor : sending this value if it changes
 	int tmpSensorValue = 1;
 
-	/* Initialisation de la couche materielle */
+	/* Hadware layer init */
 	MACInit(); 
 
-	/* Initialisation des media de communication */
+	/* Inits for each possible node (Sensor, Node2, Node1, Base) */
 	switch (TARGET)
 	{
 		case BASE:
-			InitMessageLED();
-			configureXBee(TURN_ON_RX_AND_TX);
+		{
 			// configureGSM
-			set_cursor(0,1);
+			InitMessageLED();										// Turn off all LEDs
+			configureXBee(TURN_ON_RX_AND_TX);		// Init XBee
+			set_cursor(0,1);										// Displays a std message
 			printf(" Bouton relache ");
-			break;
+		}	break;
 		case NODE1:
 		{
-			InitMessageLED();
-			configureXBee(TURN_ON_RX_AND_TX);
+			InitMessageLED();										// Init LED to display if the button is pushed
+			configureXBee(TURN_ON_RX_AND_TX);		// Init XBee
 		} break;
 		case NODE2:
 		{
-			InitMessageLED();
-			configureXBee(TURN_ON_RX_AND_TX);
-			configureFM(TURN_ON_RX);
+			InitMessageLED();										// Init LED to display if the button is pushed
+			configureXBee(TURN_ON_RX_AND_TX);		// Init XBee
+			configureFM(TURN_ON_RX);						// Init FM (Rx)
 		} break;
 		case SENSOR:
 		{
-			GPIO_InitTypeDef GPIO_InitStruct;
+			GPIO_InitTypeDef GPIO_InitStruct;		// Init GPIO for polling the value of the button
 			GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
 			GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 			GPIO_InitStruct.GPIO_Pin = GPIO_Pin_0;
 			GPIO_Init(GPIOA, &GPIO_InitStruct);
 			sensorValue = GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0);
 
-			InitMessageLED();
-			configureFM(TURN_ON_TX);
+			InitMessageLED();										// Init LED to display if the button is pushed
+			configureFM(TURN_ON_TX);						// Init FM (Tx)
 		} break;
 	}
-	
-	if (TypeCarte == STANDARD)
-	{
-		//clearScreen();
-	}
 
-	/* Boucle principale, infinie */
+	/* Infinite loop */
 	while (1)
 	{
 	
+		/* On reception of a packet */
 		if (packetReceived != NO_PACKET)
 		{
 			
 			switch (TARGET)
 			{
+				
+				/* Base : Concentrates all the messages */
 				case BASE:
 					if ((packetReceived == PACKET_FROM_XBEE) && (XBeeSkeleton.dest == BASE))
 					{
 
-						cntReload++;
+						cntReload++;														// Reload the timeout counter (to get if a node is disconnected)
 
 						switch (XBeeSkeleton.type)
 						{
 							
 							case TYPE_DATA:
 							{
-								// Envoi GSM
+								// ENVOI GSM EN FONCTION DE L'ETAT DU BOUTON
 								set_cursor(0,1);
 								if (XBeeSkeleton.data != 0)
 									printf(" Bouton relache ");
 								else
 									printf(" Bouton enfonce ");
+								sensorValue = XBeeSkeleton.data;
 							} break;
 							
 							case TYPE_NETWORK:
 							{
 								set_cursor(0,0);
 								printf("   Network OK   ");
+								
+								// Update sensor value if needed
+								set_cursor(0,1);
+								if (XBeeSkeleton.data != 0)
+									printf(" Bouton relache ");
+								else
+									printf(" Bouton enfonce ");
+								sensorValue = XBeeSkeleton.data;
 							} break;
 							
 							case TYPE_ERROR:
 							{
-								// Envoi GSM
 								set_cursor(0,0);
 								switch (XBeeSkeleton.data)
 								{
@@ -190,43 +183,40 @@ int main (void)
 										printf("Err : Node 2 off");
 									break;
 								}
+								
+								// ENVOI GSM ERREUR APRES AU MOINS 3 DETECTIONS D'ERREUR CONSECUTIVES
 							} break;
 							
 						}
 					}
 					break;
 				
+				/* Node 1 : Transfers the packets to the base */
 				case NODE1:
 					if ((packetReceived == PACKET_FROM_XBEE) && (XBeeSkeleton.dest == NODE1)) // Transfers to the base
 					{
-						if (XBeeSkeleton.type == TYPE_DATA)
+						if (XBeeSkeleton.type != TYPE_ERROR)
 						{
-							sensorValue = XBeeSkeleton.data;
+							sensorValue = XBeeSkeleton.data;		// Saves the current value of the sensor
 						}				
-						cntReload++;						
-						sendPacket(XBEE, XBeeSkeleton.type, XBeeSkeleton.num_seq, NODE1, BASE, XBeeSkeleton.count++, XBeeSkeleton.data);
+						cntReload++;													// Reload the timeout counter (to get if a node is disconnected)						
+						sendPacket(XBEE, XBeeSkeleton.type, NODE1, BASE, XBeeSkeleton.data);
 					}
 					break;
 				
+				/* Node 1 : Get the packets from FM and transfers the packets to the base */
 				case NODE2:
-					if (packetReceived == PACKET_FROM_FM) // Transfers to the next node (indicates if the CRC was correct)
+					if (packetReceived == PACKET_FROM_FM) 	// Transfers to the next node (indicates if the CRC was correct)
 					{
-						if (FMSkeleton.type == TYPE_NETWORK)
+						
+						if ( (FMSkeleton.type == TYPE_NETWORK && cntReload == 0) // Send only if needed (many FM sends, only one transmission through XBee
+							|| (FMSkeleton.type == TYPE_DATA    && FMSkeleton.data != sensorValue)) // Send only if the value has changed
 						{
-							if (cntReload++ == 0)
-							{
-								sendPacket(XBEE, FMSkeleton.type, 0, NODE2, NODE1, 0, FMSkeleton.data);
-							}
-						}
-						else if (FMSkeleton.type == TYPE_DATA)
-						{
-							tmpSensorValue = FMSkeleton.data;
-							if (tmpSensorValue != sensorValue) // Send only if the value has changed
-							{
-								sensorValue = tmpSensorValue;
-								sendPacket(XBEE, FMSkeleton.type, 0, NODE2, NODE1, 0, FMSkeleton.data);
-							}
-						}						
+							sendPacket(XBEE, FMSkeleton.type, NODE2, NODE1, FMSkeleton.data);
+							sensorValue = FMSkeleton.data;
+						}				
+
+						cntReload++;													// Reload the timeout counter (to get if a node is disconnected)
 
 					}
 					break;
@@ -238,7 +228,7 @@ int main (void)
 			packetReceived = NO_PACKET;
 		}
 		
-		// Alert button polling
+		/* Alert button polling */
 		if (TARGET == SENSOR) 
 		{
 			
@@ -247,36 +237,37 @@ int main (void)
 			if (tmpSensorValue != sensorValue)
 			{
 				sensorValue = tmpSensorValue;
-				sendPacket(FM, TYPE_DATA, 0, 0, 0, 0, sensorValue);
+				sendPacket(FM, TYPE_DATA, 0, 0, sensorValue);
 			}
 			
 		}
 		
-		// Displays the value of the message on the green LED (Olimex Cards only)
+		/* Displays the value of the message on the green LED (Olimex board) or on the yellow 15th LED (Keil board) */
 		SetMessageLED( sensorValue );
 		
-		// Network checking
+		/* Network checking */
 		if	( TIME10msExpired() )	// relaunch its own timer
 		{
 			cnt100Hz++;
 			
-			// Sensor : sends messages every 700ms
-			if ( cnt100Hz >= 70  && TARGET == SENSOR )	// Every 0,70s
+			// Sensor : sends messages regularly
+			if ( cnt100Hz >= CYCLES_BETWEEN_NETWORK_MESSAGES  && TARGET == SENSOR )
 			{
 				cnt100Hz = 0;
-				sendPacket(FM, TYPE_NETWORK, 0, SENSOR, BASE, 0, 0);
+				sendPacket(FM, TYPE_NETWORK, SENSOR, BASE, sensorValue);
 			}
 
-			// Node : if no message received after 1,5s, sends an error
-			if ( cnt100Hz >= 150  && TARGET != SENSOR && TARGET != BASE )	// Every 1,50s
+			// Node : if no message received after a given time, sends an error
+			if ( (cnt100Hz >= CYCLES_BEFORE_ALARM_NODE2 && TARGET == NODE2 )
+				|| (cnt100Hz >= CYCLES_BEFORE_ALARM_NODE1 && TARGET == NODE1 ))
 			{
 				cnt100Hz = 0;
 				if (cntReload == 0)
 				{
 					if (TARGET == NODE2)
-						sendPacket(XBEE, TYPE_ERROR, 0, NODE2, NODE1, 0, SENSOR);
+						sendPacket(XBEE, TYPE_ERROR, NODE2, NODE1, SENSOR);
 					if (TARGET == NODE1)
-						sendPacket(XBEE, TYPE_ERROR, 0, NODE1, BASE, 0, NODE2);
+						sendPacket(XBEE, TYPE_ERROR, NODE1, BASE, NODE2);
 				}
 				else
 				{
@@ -284,14 +275,15 @@ int main (void)
 				}
 			}
 			
-			// Base : if no message received after 1,5s, rise an error
-			if ( cnt100Hz >= 150  && TARGET == BASE )	// Every 1,50s
+			// Base : if no message received at timeout : rise an error
+			if ( cnt100Hz >= CYCLES_BEFORE_ALARM_BASE && TARGET == BASE )
 			{
 				cnt100Hz = 0;
 				if (cntReload == 0)
 				{
 					set_cursor(0,0);
 					printf("Err : Node 1 off");
+					// ENVOI GSM ERREUR
 				}
 				else
 				{
@@ -334,11 +326,6 @@ void DataReceived (unsigned char d, ID_UART uart)
 					XBeeRxState = STATE_SYNC;
 				else if (d == CONF_CHAR_1)
 					XBeeRxState = STATE_CONF;
-				/*else
-				{
-					set_cursor(0,1);
-					printf("Wrong Rx : %c",d);
-				}*/
 			} break;
 			
 			case STATE_SYNC:
@@ -399,13 +386,14 @@ void DataReceived (unsigned char d, ID_UART uart)
 		
 		break;
 	case GSM:
-		/*
-		 * TODO: rajoutez le traitement a faire lors de la reception via GSM 
-		 */
+		// NOP
 		break;
 	}
 }							
 
+/** Save many values of the sensor and checks if all the data stored is the same
+ *  Easy way to be sure the button is not shaking anymore before sending any message
+ */
 int averageSensorValue(int newValue)
 {
 	static int values[NB_SENSOR_VALUES_AVG];
@@ -438,6 +426,9 @@ int averageSensorValue(int newValue)
 	
 }
 
+/** Init of the GPIO using the LEDs
+ *  Init depends on the board used (Olimex or Keil)
+ */
 void InitMessageLED( void )
 {
 	GPIO_InitTypeDef GPIO_InitStruct;
@@ -501,6 +492,9 @@ void InitMessageLED( void )
 
 }
 
+/** Set the green LED on Olimex boards or the yellow LED on Keil board
+ *  Manage the active-high/active-low functionalities
+ */
 void SetMessageLED( int value )
 {
 	if (value == 0)

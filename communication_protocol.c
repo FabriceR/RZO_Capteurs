@@ -33,7 +33,7 @@ int addReceivedByte(char byte, ID_UART uart)
 		case XBEE:
 		{
 			XBeePacket[XBeeIdByteReceived] = byte;
-			if (++XBeeIdByteReceived == XBEE_PACKET_SIZE)
+			if (++XBeeIdByteReceived == XBEE_PACKET_SIZE-2) // -2 because the first two sync characters are not taken in account
 			{
 				XBeeIdByteReceived = 0;
 				packetEnded = 1;
@@ -43,7 +43,7 @@ int addReceivedByte(char byte, ID_UART uart)
 		case FM:
 		{
 			FMPacket[FMIdByteReceived] = byte;
-			if (++FMIdByteReceived == FM_PACKET_SIZE)
+			if (++FMIdByteReceived == FM_PACKET_SIZE-2) // -2 because the first two sync characters are not taken in account
 			{
 				FMIdByteReceived = 0;
 				packetEnded = 1;
@@ -76,17 +76,13 @@ int decodePacket(ID_UART uart)
 		{
 			XBeeSkeleton.syncChar1 = SYNC_CHAR_1;
 			XBeeSkeleton.syncChar2 = SYNC_CHAR_2;
-			XBeeSkeleton.type = XBeePacket[0] ;
-			XBeeSkeleton.num_seq = XBeePacket[1] ;
-			XBeeSkeleton.source = ((short int) XBeePacket[2]) << 8;
-			XBeeSkeleton.source = XBeeSkeleton.source | XBeePacket[3];
-			XBeeSkeleton.dest = ((short int) XBeePacket[4]) << 8;
-			XBeeSkeleton.dest = XBeeSkeleton.dest | XBeePacket[5];
-			XBeeSkeleton.count = XBeePacket[6] ;
-			XBeeSkeleton.data = ((int) XBeePacket[7]) << 24;
-			XBeeSkeleton.data = XBeeSkeleton.data | ((int) XBeePacket[8]) << 16;
-			XBeeSkeleton.data = XBeeSkeleton.data | ((int) XBeePacket[9]) << 8;
-			XBeeSkeleton.data = XBeeSkeleton.data | ((int) XBeePacket[10]);
+			XBeeSkeleton.type =   XBeePacket[0] ;
+			XBeeSkeleton.source = XBeePacket[1];
+			XBeeSkeleton.dest =   XBeePacket[2];
+			XBeeSkeleton.data =                     ((int) XBeePacket[3]) << 24;
+			XBeeSkeleton.data = XBeeSkeleton.data | ((int) XBeePacket[4]) << 16;
+			XBeeSkeleton.data = XBeeSkeleton.data | ((int) XBeePacket[5]) << 8;
+			XBeeSkeleton.data = XBeeSkeleton.data | ((int) XBeePacket[6]);
 			
 			validity = PACKET_FROM_XBEE;
 		} break;
@@ -96,14 +92,14 @@ int decodePacket(ID_UART uart)
 			FMSkeleton.syncChar1 = SYNC_CHAR_1;
 			FMSkeleton.syncChar2 = SYNC_CHAR_2;
 			FMSkeleton.type = FMPacket[0] ;
-			FMSkeleton.data = ((int) FMPacket[1]) << 24;
+			FMSkeleton.data =                   ((int) FMPacket[1]) << 24;
 			FMSkeleton.data = FMSkeleton.data | ((int) FMPacket[2]) << 16;
 			FMSkeleton.data = FMSkeleton.data | ((int) FMPacket[3]) << 8;
-			FMSkeleton.data = FMSkeleton.data | ((int)FMPacket[4]);
-			FMSkeleton.crc  = ((int) FMPacket[5]) << 8 ;
-			FMSkeleton.crc  = FMSkeleton.crc | FMPacket[6];
+			FMSkeleton.data = FMSkeleton.data | ((int) FMPacket[4]);
+			FMSkeleton.crc  =                   ((int) FMPacket[5]) << 8 ;
+			FMSkeleton.crc  = FMSkeleton.crc  | ((int) FMPacket[6]);
 			
-			if (1)//(FMSkeleton.crc == calculatesCRC(FMPacket, FM_PACKET_SIZE-4)) //crc valid : FMSkeleton.crc == crc calculation du tonnerre
+			if (FMSkeleton.crc == calculatesCRC(FMPacket, FM_PACKET_SIZE-4)) //crc valid : FMSkeleton.crc == crc calculation du tonnerre
 			{
 				validity = PACKET_FROM_FM;
 			}
@@ -127,7 +123,7 @@ int decodePacket(ID_UART uart)
 /** Send a frame from a source to a destination
  * Returns an integer : 0 if transmission done, 1 if an error occurs
  */
-void sendPacket(ID_UART uart, unsigned char type, unsigned char num_seq, unsigned short int source, unsigned short int dest, unsigned char count, long int data)
+void sendPacket(ID_UART uart, unsigned char type, unsigned char source, unsigned char dest, int data)
 {
 	int repetition;
 
@@ -141,18 +137,14 @@ void sendPacket(ID_UART uart, unsigned char type, unsigned char num_seq, unsigne
 			XBeePacketToSend[0] = SYNC_CHAR_1 ;
 			XBeePacketToSend[1] = SYNC_CHAR_2 ;
 			XBeePacketToSend[2] = type ;
-			XBeePacketToSend[3] = num_seq ;
-			XBeePacketToSend[4] = source >> 8 ;
-			XBeePacketToSend[5] = source ;
-			XBeePacketToSend[6] = dest >> 8 ;
-			XBeePacketToSend[7] = dest  ;
-			XBeePacketToSend[8] = count ;
-			XBeePacketToSend[9] =  data >> 24 ;
-			XBeePacketToSend[10] = data >> 16 ;
-			XBeePacketToSend[11] = data >> 8 ;
-			XBeePacketToSend[12] = data ;
+			XBeePacketToSend[3] = source ;
+			XBeePacketToSend[4] = dest  ;
+			XBeePacketToSend[5] = data >> 24 ;
+			XBeePacketToSend[6] = data >> 16 ;
+			XBeePacketToSend[7] = data >> 8 ;
+			XBeePacketToSend[8] = data ;
 
-			SendString(XBeePacketToSend, XBEE_PACKET_SIZE+2, XBEE);
+			SendString(XBeePacketToSend, XBEE_PACKET_SIZE, XBEE);
 		} break;
 		
 		case FM:
