@@ -19,9 +19,9 @@
 
 typedef enum
 {
-	TYPE_DATA = 0,
-	TYPE_NETWORK,
-	TYPE_ERROR,
+	TYPE_DATA = 'D',
+	TYPE_NETWORK = 'N',
+	TYPE_ERROR = 'E',
 } TypeOfMessage;
 
 typedef enum

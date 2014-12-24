@@ -21,12 +21,12 @@
 
 typedef enum
 {
-	BASE = 	0,
-	NODE1,
-	NODE2,
-	SENSOR,
+	BASE = 'B',
+	NODE1 = '1',
+	NODE2 = '2',
+	SENSOR = 'S',
 	// Number of cores
-	NB_CORES,
+	NB_CORES = 4,
 } CORES;
 
 ///////////////////////////////////

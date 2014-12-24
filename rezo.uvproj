@@ -837,7 +837,7 @@
             <uSurpInc>0</uSurpInc>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>STM32F10X_MD _LCD_DEBUG_</Define>
+              <Define>STM32F10X_MD</Define>
               <Undefine></Undefine>
               <IncludePath>C:\Keil\stm32lib\stm32f10x\peripherals\inc;.\drivers</IncludePath>
             </VariousControls>

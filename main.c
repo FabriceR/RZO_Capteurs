@@ -53,13 +53,13 @@
 				si message provenant d'un noeud : envoi par gsm du coeur ne fonctionnant plus
 	
 	RESTE DEV :
-	- Envois périodiques capteur et noeuds
-	- Adresser modules XBee
 	- Config GSM
 	- Envois GSM		
 	RESTE DEBUG :
 	- Réussir à utiliser le CRC
 	- SendPacket XBee : SIZE+2 sinon ça ne marche pas, pourquoi ?
+	- Être sur le bon PAN ID
+	- N'afficher une erreur de réseau que lorsqu'on est certain de sa source
 */
 		
 // Routing table
@@ -93,9 +93,10 @@ int sensorValue = 1;
  */
 int main (void)
 {
-// variables pour la demo timer+LED
-// int cnt100Hz = 0, cnt1Hz = 0;	// compteurs
-// int blink = 15;			// rapport cyclique LED (sur 100)
+
+	int cnt100Hz = 0;		// Counter incremented every 10ms
+	int	cntReload = 0;	// Counter incremented at each theoretical reception of a network message from the sensor
+
 	int tmpSensorValue = 1;
 
 	/* Initialisation de la couche materielle */
@@ -108,6 +109,8 @@ int main (void)
 			InitMessageLED();
 			configureXBee(TURN_ON_RX_AND_TX);
 			// configureGSM
+			set_cursor(0,1);
+			printf(" Bouton relache ");
 			break;
 		case NODE1:
 		{
@@ -151,6 +154,9 @@ int main (void)
 				case BASE:
 					if ((packetReceived == PACKET_FROM_XBEE) && (XBeeSkeleton.dest == BASE))
 					{
+
+						cntReload++;
+
 						switch (XBeeSkeleton.type)
 						{
 							
@@ -162,20 +168,28 @@ int main (void)
 									printf(" Bouton relache ");
 								else
 									printf(" Bouton enfonce ");
-								//printf("  x OK   : %d", XBeeSkeleton.data);
 							} break;
 							
 							case TYPE_NETWORK:
 							{
-								set_cursor(0,1);
-								printf("Network : %d", XBeeSkeleton.data);
+								set_cursor(0,0);
+								printf("   Network OK   ");
 							} break;
 							
 							case TYPE_ERROR:
 							{
 								// Envoi GSM
-								set_cursor(0,1);
-								printf("Error   : %d", XBeeSkeleton.data);
+								set_cursor(0,0);
+								switch (XBeeSkeleton.data)
+								{
+									case SENSOR:
+										printf("Err : Sensor off");
+									break;
+									
+									case NODE2:
+										printf("Err : Node 2 off");
+									break;
+								}
 							} break;
 							
 						}
@@ -183,22 +197,37 @@ int main (void)
 					break;
 				
 				case NODE1:
-					if ((packetReceived == PACKET_FROM_XBEE) && (XBeeSkeleton.dest == BASE)) // Transfers to the base
+					if ((packetReceived == PACKET_FROM_XBEE) && (XBeeSkeleton.dest == NODE1)) // Transfers to the base
 					{
-						sensorValue = XBeeSkeleton.data;
-						sendPacket(XBEE, XBeeSkeleton.type, XBeeSkeleton.num_seq, XBeeSkeleton.source, XBeeSkeleton.dest, XBeeSkeleton.count++, XBeeSkeleton.data);
-					}							
+						if (XBeeSkeleton.type == TYPE_DATA)
+						{
+							sensorValue = XBeeSkeleton.data;
+						}				
+						cntReload++;						
+						sendPacket(XBEE, XBeeSkeleton.type, XBeeSkeleton.num_seq, NODE1, BASE, XBeeSkeleton.count++, XBeeSkeleton.data);
+					}
 					break;
 				
 				case NODE2:
 					if (packetReceived == PACKET_FROM_FM) // Transfers to the next node (indicates if the CRC was correct)
 					{
-						tmpSensorValue = FMSkeleton.data;
-						if (tmpSensorValue != sensorValue) // Send only if the value changed
+						if (FMSkeleton.type == TYPE_NETWORK)
 						{
-							sensorValue = tmpSensorValue;
-							sendPacket(XBEE, FMSkeleton.type, 0, SENSOR, BASE, 1, FMSkeleton.data);
+							if (cntReload++ == 0)
+							{
+								sendPacket(XBEE, FMSkeleton.type, 0, NODE2, NODE1, 0, FMSkeleton.data);
+							}
 						}
+						else if (FMSkeleton.type == TYPE_DATA)
+						{
+							tmpSensorValue = FMSkeleton.data;
+							if (tmpSensorValue != sensorValue) // Send only if the value has changed
+							{
+								sensorValue = tmpSensorValue;
+								sendPacket(XBEE, FMSkeleton.type, 0, NODE2, NODE1, 0, FMSkeleton.data);
+							}
+						}						
+
 					}
 					break;
 				
@@ -226,37 +255,52 @@ int main (void)
 		// Displays the value of the message on the green LED (Olimex Cards only)
 		SetMessageLED( sensorValue );
 		
-		
-	
-		
-		/* Fabrice ne regarde pas la suite c'est caca */
-		/*if	( TIME10msExpired() )	// N.B. cette fonction a un effet de bord : elle re-arme son propre timer 
+		// Network checking
+		if	( TIME10msExpired() )	// relaunch its own timer
+		{
+			cnt100Hz++;
+			
+			// Sensor : sends messages every 700ms
+			if ( cnt100Hz >= 70  && TARGET == SENSOR )	// Every 0,70s
 			{
-			if	( ++cnt100Hz >= 100 )			// une fois par seconde
+				cnt100Hz = 0;
+				sendPacket(FM, TYPE_NETWORK, 0, SENSOR, BASE, 0, 0);
+			}
+
+			// Node : if no message received after 1,5s, sends an error
+			if ( cnt100Hz >= 150  && TARGET != SENSOR && TARGET != BASE )	// Every 1,50s
+			{
+				cnt100Hz = 0;
+				if (cntReload == 0)
 				{
-				cnt100Hz = 0; cnt1Hz += 1;
-				if	( TypeCarte == STANDARD )
-					{
-					set_cursor(0,1);
-					printf("%6u ", cnt1Hz );
-					}
-				else	{	// voir plus haut activation du printf debug
-					fprintf (&__debug, "%6u \n", cnt1Hz );
-					}
+					if (TARGET == NODE2)
+						sendPacket(XBEE, TYPE_ERROR, 0, NODE2, NODE1, 0, SENSOR);
+					if (TARGET == NODE1)
+						sendPacket(XBEE, TYPE_ERROR, 0, NODE1, BASE, 0, NODE2);
 				}
-			// faire clignoter 1 LED avec une résolution de 10 ms
-			if	(TypeCarte == GATEWAY)			// toutes les 10 ms
-				{				
-				if	( cnt100Hz < blink )		// blink 1Hz
-					GPIOC->BRR  = GPIO_Pin_12;	// l'unique LED de la carte Olimex
-				else	GPIOC->BSRR = GPIO_Pin_12;	// active a l'etat bas
+				else
+				{
+					cntReload = 0;
 				}
-			else	{
-				if	( cnt100Hz < blink )		// blink 1Hz
-					GPIOB->BSRR = GPIO_Pin_15;	// la LED de droite de la carte Keil
-				else	GPIOB->BRR  = GPIO_Pin_15;	// active a l'etat haut
+			}
+			
+			// Base : if no message received after 1,5s, rise an error
+			if ( cnt100Hz >= 150  && TARGET == BASE )	// Every 1,50s
+			{
+				cnt100Hz = 0;
+				if (cntReload == 0)
+				{
+					set_cursor(0,0);
+					printf("Err : Node 1 off");
 				}
-			} // if TIME10msExpired() */
+				else
+				{
+					cntReload = 0;
+				}
+			}
+			
+		} // if TIME10msExpired
+		
 	} // while (1)
 }
 
@@ -290,11 +334,11 @@ void DataReceived (unsigned char d, ID_UART uart)
 					XBeeRxState = STATE_SYNC;
 				else if (d == CONF_CHAR_1)
 					XBeeRxState = STATE_CONF;
-				else
+				/*else
 				{
 					set_cursor(0,1);
 					printf("Wrong Rx : %c",d);
-				}
+				}*/
 			} break;
 			
 			case STATE_SYNC:
