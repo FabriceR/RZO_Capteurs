@@ -97,7 +97,7 @@ int configureXBee( int direction )
 	} // Fin switch : direction
 	
 	// Configure XBee module
-	if (out == SUCCESS)
+	/*if (out == SUCCESS)
 	{
 		TIMEWaitxms(500);
 
@@ -110,7 +110,7 @@ int configureXBee( int direction )
 			out = sendCommand(ATWR);
 		if (out == SUCCESS)
 			out = sendCommand(ATCN);
-	}
+	}*/
 	
 	return out;
 }

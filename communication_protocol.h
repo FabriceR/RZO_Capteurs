@@ -16,6 +16,8 @@
 
 #define XBEE_PACKET_SIZE			9 // Bytes
 #define FM_PACKET_SIZE				9 // Bytes
+#define GSM_1ST_MSG_SIZE			21 // Bytes
+#define GSM_POSITION_NUMBER		9 // Bytes
 
 typedef enum
 {
@@ -68,8 +70,11 @@ int addReceivedByte(char byte, ID_UART uart);
 int decodePacket(ID_UART uart);
 
 /** Send a frame from a source to a destination
- * Returns an integer : 0 if transmission done, 1 if an error occurs
  */
 void sendPacket(ID_UART uart, unsigned char type, unsigned char source, unsigned char dest, int data);
- 
+
+/** Send a message using GSM 
+ */
+void sendGSM(unsigned char * number, unsigned char * message, unsigned char length);
+
 #endif /* __COMMUNICATION_PROTOCOL__ */

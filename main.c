@@ -52,6 +52,12 @@
 		Si timeout : 		Envoi par gsm du coeur ne fonctionnant plus
 */
 		
+/*	TODO : 
+	- Envoi du bon texto après une période de confirmation de deux ou trois erreurs de réseau
+	- Envoi d'un seul putain de texto
+	- Affichage à régler ?
+*/
+
 // XBee Rx FSM state
 int XBeeRxState = STATE_IDLE;
 
@@ -61,6 +67,9 @@ int FMRxState = STATE_IDLE;
 // Flag to indicate if a packet is received (move to another file later)
 int packetReceived = NO_PACKET; 
 
+// Message to be sent through the GSM
+unsigned char gsmMessage[50];
+int gsmLength ;
 
 /*
  * int main (void)
@@ -84,7 +93,7 @@ int main (void)
 
 	int sensorValue = 1; 	// Value of the sensor : sending this value if it changes
 	int tmpSensorValue = 1;
-
+	
 	/* Hadware layer init */
 	MACInit(); 
 
@@ -147,12 +156,23 @@ int main (void)
 							
 							case TYPE_DATA:
 							{
-								// ENVOI GSM EN FONCTION DE L'ETAT DU BOUTON
+								
 								set_cursor(0,1);
 								if (XBeeSkeleton.data != 0)
+								{
 									printf(" Bouton relache ");
+								}									
 								else
+								{
 									printf(" Bouton enfonce ");
+
+									// Send a message through GSM									
+									set_cursor(0,0);
+									printf("Env SMS Presence");
+									strcpy((char *)gsmMessage, "Attention : présence détectée !");
+									gsmLength = strlen((const char *) gsmMessage);
+									sendGSM((unsigned char *) PHONE_NUMBER_FWAB, gsmMessage, gsmLength);
+								}
 								sensorValue = XBeeSkeleton.data;
 							} break;
 							
@@ -176,15 +196,26 @@ int main (void)
 								switch (XBeeSkeleton.data)
 								{
 									case SENSOR:
-										printf("Err : Sensor off");
+										//printf("Err : Sensor off");
+																		
+										//set_cursor(0,1);
+										printf(" SMS Sensor off ");
+										strcpy((char *)gsmMessage, "Attention : Sensor off !");
+										gsmLength = strlen((const char *) gsmMessage);
+										sendGSM((unsigned char *) PHONE_NUMBER_MICH, gsmMessage, gsmLength);
 									break;
 									
 									case NODE2:
-										printf("Err : Node 2 off");
+										//printf("Err : Node 2 off");
+									
+										//set_cursor(0,1);
+										printf(" SMS Node 2 off ");
+										strcpy((char *)gsmMessage, "Attention : Node 2 off !");
+										gsmLength = strlen((const char *) gsmMessage);
+										sendGSM((unsigned char *) PHONE_NUMBER_MICH, gsmMessage, gsmLength);
 									break;
 								}
 								
-								// ENVOI GSM ERREUR APRES AU MOINS 3 DETECTIONS D'ERREUR CONSECUTIVES
 							} break;
 							
 						}
@@ -282,8 +313,13 @@ int main (void)
 				if (cntReload == 0)
 				{
 					set_cursor(0,0);
-					printf("Err : Node 1 off");
-					// ENVOI GSM ERREUR
+					//printf("Err : Node 1 off");
+															
+					//set_cursor(0,1);
+					printf(" SMS Node 1 off ");
+					strcpy((char *)gsmMessage, "Attention : Node 1 off !");
+					gsmLength = strlen((const char *) gsmMessage);
+					sendGSM((unsigned char *) PHONE_NUMBER_MICH, gsmMessage, gsmLength);
 				}
 				else
 				{

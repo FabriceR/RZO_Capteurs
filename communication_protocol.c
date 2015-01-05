@@ -172,8 +172,28 @@ void sendPacket(ID_UART uart, unsigned char type, unsigned char source, unsigned
 		
 		case GSM:
 		{
-			
+			// NOP
 		} break;
 		
 	}
+}
+
+/** Send a message using GSM 
+ */
+void sendGSM(unsigned char * number, unsigned char * message, unsigned char length)
+{
+	unsigned char firstMsg[GSM_1ST_MSG_SIZE];
+	strncpy((char *) &firstMsg[0], "at+cmgs=\"0000000000\"\r", GSM_1ST_MSG_SIZE);
+	strncpy((char *) &firstMsg[GSM_POSITION_NUMBER], (const char *) number, 10);
+	
+	// Initiate message through the serial line sending the number to reach
+	SendString(firstMsg, GSM_1ST_MSG_SIZE, GSM);
+	TIMEWaitxms(1000);
+	
+	// Message
+	SendString(message, length, GSM);
+	
+	// End of the message : ready to send
+	SendData(0x1A, GSM);
+	TIMEWaitxms(1000);
 }
