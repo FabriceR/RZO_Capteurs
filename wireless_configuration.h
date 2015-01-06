@@ -19,6 +19,8 @@
 #define		SYNC_CHAR_2 	'M'
 #define		CONF_CHAR_1 	'O'
 #define		CONF_CHAR_2 	'K'
+#define		GSM_CHAR_1 		'P'
+#define		GSM_CHAR_2 		'B'
 
 typedef enum
 {
@@ -49,6 +51,12 @@ typedef enum
  */
 void setOKReceived( void );
 
+
+/** Set the PBReady flag to true.
+ */
+void setPBReadyReceived( void );
+
+
 /** Configure FM module and STM interrupts
  * direction comes from the enumeration FM_DIRECTION in wireless.h
  * Achtung : Do not try to send right after a receive interrupt, it does not work
@@ -62,6 +70,11 @@ int configureFM( int direction );
  * in order to not disturb other communication.
  */
 int configureXBee( int direction );
+
+
+/** Configure GSM module just by waiting for the PBReady signal
+ */
+void configureGSM( void );
 
 
 /*

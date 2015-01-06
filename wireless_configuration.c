@@ -9,8 +9,10 @@
  
 #include "wireless_configuration.h"
 
-// Indicates if a OK has been received
+// Indicates if a OK or a PBReady has been received
 int OKReceived = 0;
+int PBReady = 0;
+
 
 /** Set the OKReceived flag to true.
  */
@@ -18,6 +20,15 @@ void setOKReceived( void )
 {
 	OKReceived = 1;
 }
+
+
+/** Set the PBReady flag to true.
+ */
+void setPBReadyReceived( void )
+{
+	PBReady = 1;
+}
+
 
 /** Configure FM module and STM interrupts
  * direction comes from the enumeration FM_DIRECTION in wireless.h
@@ -97,7 +108,7 @@ int configureXBee( int direction )
 	} // Fin switch : direction
 	
 	// Configure XBee module
-	/*if (out == SUCCESS)
+	if (out == SUCCESS)
 	{
 		TIMEWaitxms(500);
 
@@ -110,11 +121,33 @@ int configureXBee( int direction )
 			out = sendCommand(ATWR);
 		if (out == SUCCESS)
 			out = sendCommand(ATCN);
-	}*/
+	}
 	
 	return out;
 }
 	
+
+/** Configure GSM module just by waiting for the PBReady signal
+ */
+void configureGSM( void )
+{
+	set_cursor(0, 0);
+	printf("Waiting for GSM ");
+	TIMEWaitxms(1600);
+	if (!PBReady)
+	{
+		set_cursor(0, 0);
+		printf("GSM not working ");
+	}
+	else
+	{
+		set_cursor(0, 0);
+		printf("  GSM working   ");
+	}
+	TIMEWaitxms(800);
+}
+
+
 /*
  * void SendString(unsigned char * str, int length, ID_UART uart) 
  *
